@@ -29,4 +29,3 @@ while True:
     D = cv2.cvtColor(D, cv2.COLOR_GRAY2RGB)
 
     camera.schedule_frame(D)
-    time.sleep(1/fps)

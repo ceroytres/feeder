@@ -2,3 +2,5 @@ opencv-python
 pyfakewebcam
 torch==1.1
 torchvision==0.3.0
+dlib==19.19.0
+PyQt5==5.9.2
