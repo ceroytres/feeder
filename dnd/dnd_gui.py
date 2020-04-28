@@ -3,53 +3,85 @@ import sys
 from collections import deque
 import threading
 import queue
-
 import time
+import argparse
+
 import pyfakewebcam
 import numpy as np
 import cv2
 
-from PyQt5.QtCore import Qt, QThread, QTimer
+from PyQt5.QtCore import QThread, pyqtSignal
 
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget,
                              QPushButton, QVBoxLayout)
+parser = argparse.ArgumentParser()
+parser.add_argument('-f', action='store_true')
+args = parser.parse_args()
 
-class Camera:
 
-    def __init__(self, cam_num: int = 0):
-        self.cam_num = cam_num
+class VideoOverlayThread(QThread):
 
-    def get_frame(self):
-        ret, self.frame = self.cap.read()
-        return self.frame
+    roll_txt = pyqtSignal(object)
 
-    def start(self):
-        self.cap = cv2.VideoCapture(self.cam_num)
-        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+    def __init__(self, flip = False):
+        super(VideoOverlayThread,self).__init__()
+        self.flip = flip
 
-    def __repr__(self):
+    def run(self):
 
-        return f"Frame Size {self.width}x{self.height}  FPS {self.fps}"
+        print(self.roll_txt_)
 
+        cap = cv2.VideoCapture(0)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        camera = pyfakewebcam.FakeWebcam('/dev/video2', width, height)
+
+
+        
+        while True:
+            ret, frame = cap.read()
+
+            if self.flip:
+                frame = frame[:,::-1]
+            frame = np.ascontiguousarray(frame)
+
+            frame = self.set_txt(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            camera.schedule_frame(frame)
+
+    def set_txt(self, img):
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale              = .5
+        fontColor              = (255,255,255)
+        loc_x, loc_y = (10,20)
+
+  
+        for i, (roll_no, dice_type, val) in enumerate(self.roll_txt_):
+            roll_txt = f"Roll: {roll_no} Dice: d{dice_type} Value: {val}"
+            _,y_size= cv2.getTextSize(roll_txt, font, fontScale, thickness=2)
+            loc = (loc_x, loc_y + y_size * i * 10)
+            cv2.putText(img, roll_txt, loc, font, fontScale, fontColor, thickness = 2)
+
+
+        
+        return img
 
 class DiceWindow(QMainWindow): 
 
-    def __init__(self, num_rolls_save: int = 4):
+    def __init__(self, num_rolls_save: int = 8, flip = args.f):
 
-        super().__init__()
+        super(DiceWindow, self).__init__()
 
-        self.camera = Camera(0)
 
         self.central_widget = QWidget()
         self.layout = QVBoxLayout(self.central_widget)
         self.num_clicks = 0
         self.num_rolls_save = num_rolls_save
         self.roll_queue = deque([], self.num_rolls_save)
+        self.roll_txt = ""
 
 
-        for dice in [4,6]:
+        for dice in [4,6, 8, 10, 100, 12, 20]:
             button = QPushButton(f'd{dice}', self.central_widget)
             dice_click = lambda ch, d = dice: self.on_button_clicked(d)
             button.clicked.connect(dice_click)
@@ -57,6 +89,11 @@ class DiceWindow(QMainWindow):
 
 
         self.setCentralWidget(self.central_widget)
+
+        self.video_thread = VideoOverlayThread(flip=flip)
+        self.video_thread.roll_txt.connect(self.on_button_clicked)
+        self.video_thread.roll_txt_ = self.roll_queue
+        self.video_thread.start()
 
 
 
@@ -71,24 +108,21 @@ class DiceWindow(QMainWindow):
         self.num_clicks +=1
         self.roll_queue.appendleft((self.num_clicks,dice,res))
 
-        print(self.roll_queue)
+
+        
 
 
-class VideoThread(QThread):
 
-    def __init__(self, camera):
-        super().__init__()
-        self.camera = camera
-    
-    def run(self):
-        self.camera.get_frame()
+
+
+
 
 if __name__ == "__main__":
+
+
+
     app = QApplication(["Dice Roller"])
     window = DiceWindow()                                          
     window.show()
-
-
-
     sys.exit( app.exec_() )
     
