@@ -3,7 +3,7 @@
 # Setup
 
 ```bash 
-./setup.sh # install necessary packages
+sudo ./setup.sh # install necessary packages
 ```
 
 # Run 
