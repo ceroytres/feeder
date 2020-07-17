@@ -2,13 +2,20 @@
 
 # Setup
 
+Clone the repo as follows:
+
+```bash
+git clone 
+```
+
+
 ```bash 
 sudo ./setup.sh # install necessary packages
 ```
 
 # Run 
 
-Currently, streams default to ```/dev/video2```. You can check if it exists using the following:
+Currently, the default dummy device is ```/dev/video2```. You can check if it exists using the following:
 
 ```bash
 ./ls_vid.sh
