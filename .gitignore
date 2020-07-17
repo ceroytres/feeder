@@ -1,6 +1,7 @@
 .vscode
 *.pth
 *.onnx
+*.png
 
 
 ####################    Default python gitignore           ##########################

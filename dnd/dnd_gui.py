@@ -14,8 +14,10 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QWidget,
                              QPushButton, QVBoxLayout)
-parser = argparse.ArgumentParser()
-parser.add_argument('-f', action='store_true')
+                             
+parser = argparse.ArgumentParser(description='Creates a DnD dice roller GUI and overlays the results on webcam stream')
+parser.add_argument('-f', action='store_true', help = 'Flips stream about the vertical axis')
+parser.add_argument('-c', default=2, type=int, help = 'Select camera device')
 args = parser.parse_args()
 
 
@@ -32,7 +34,7 @@ class VideoOverlayThread(QThread):
         cap = cv2.VideoCapture(0)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        camera = pyfakewebcam.FakeWebcam('/dev/video1', width, height)
+        camera = pyfakewebcam.FakeWebcam(f'/dev/video{args.c}', width, height)
 
 
         
