@@ -1,0 +1,10 @@
+generator:
+  class: ar.aruco.FourCornerArucoTagGenerator
+  params:
+    aruco_dict: "DICT_6X6_250"
+    tag_size: 200
+    ids: [200, 34, 3, 69]
+    borderBits: 1
+    space_row: 500
+    space_col: 500
+    pad_size: 10

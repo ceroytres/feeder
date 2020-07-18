@@ -2,6 +2,7 @@
 *.pth
 *.onnx
 *.png
+output/
 
 
 ####################    Default python gitignore           ##########################

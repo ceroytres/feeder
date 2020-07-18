@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+import hydra
+
+
+@hydra.main(config_path="conf/config.yml")
+def main(cfg):
+    print("Creating Aruco Tag with following paramaters:")
+    print(cfg.pretty())
+    tagGen = hydra.utils.instantiate(cfg.generator)
+    tagGen.save('tag.png')
+
+
+if __name__ == "__main__":
+
+    main()
+    
